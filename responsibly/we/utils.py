@@ -11,10 +11,8 @@ from sklearn.metrics import accuracy_score
 
 
 WORD_EMBEDDING_MODEL_TYPES = (gensim.models.keyedvectors.KeyedVectors,
-                              gensim.models.keyedvectors.BaseKeyedVectors,
                               gensim.models.fasttext.FastText,
-                              gensim.models.word2vec.Word2Vec,
-                              gensim.models.base_any2vec.BaseWordEmbeddingsModel,)  # pylint: disable=line-too-long
+                              gensim.models.word2vec.Word2Vec, )  # pylint: disable=line-too-long
 
 
 def round_to_extreme(value, digits=2):
@@ -28,8 +26,7 @@ def round_to_extreme(value, digits=2):
 def normalize(v):
     """Normalize a 1-D vector."""
     if v.ndim != 1:
-        raise ValueError('v should be 1-D, {}-D was given'.format(
-            v.ndim))
+        raise ValueError('v should be 1-D, {}-D was given'.format(v.ndim))
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
@@ -98,7 +95,8 @@ def generate_words_forms(words):
     return sum([generate_one_word_forms(word) for word in words], [])
 
 
-def take_two_sides_extreme_sorted(df, n_extreme,
+def take_two_sides_extreme_sorted(df,
+                                  n_extreme,
                                   part_column=None,
                                   head_value='',
                                   tail_value=''):
@@ -109,9 +107,8 @@ def take_two_sides_extreme_sorted(df, n_extreme,
         head_df[part_column] = head_value
         tail_df[part_column] = tail_value
 
-    return (pd.concat([head_df, tail_df])
-            .drop_duplicates()
-            .reset_index(drop=True))
+    return (pd.concat([head_df,
+                       tail_df]).drop_duplicates().reset_index(drop=True))
 
 
 def assert_gensim_keyed_vectors(model):
@@ -119,13 +116,16 @@ def assert_gensim_keyed_vectors(model):
         type_names = (model_type.__name__
                       for model_type in WORD_EMBEDDING_MODEL_TYPES)
         raise TypeError('model should be on of the types'
-                        ' ({}), not {}.'
-                        .format(', '.join(type_names),
-                                type(model)))
+                        ' ({}), not {}.'.format(', '.join(type_names),
+                                                type(model)))
 
 
-def most_similar(model, positive=None, negative=None,
-                 topn=10, restrict_vocab=None, indexer=None,
+def most_similar(model,
+                 positive=None,
+                 negative=None,
+                 topn=10,
+                 restrict_vocab=None,
+                 indexer=None,
                  unrestricted=True):
     """
     Find the top-N most similar words.
@@ -168,8 +168,7 @@ def most_similar(model, positive=None, negative=None,
 
     model.init_sims()
 
-    if (isinstance(positive, string_types)
-            and not negative):
+    if (isinstance(positive, string_types) and not negative):
         # allow calls like most_similar('dog'),
         # as a shorthand for most_similar(['dog'])
         positive = [positive]
@@ -182,13 +181,13 @@ def most_similar(model, positive=None, negative=None,
     # add weights for each word, if not already present;
     # default to 1.0 for positive and -1.0 for negative words
     positive = [
-        (word, 1.0) if isinstance(word, string_types + (np.ndarray,))
-        else word
+        (word,
+         1.0) if isinstance(word, string_types + (np.ndarray, )) else word
         for word in positive
     ]
     negative = [
-        (word, -1.0) if isinstance(word, string_types + (np.ndarray,))
-        else word
+        (word,
+         -1.0) if isinstance(word, string_types + (np.ndarray, )) else word
         for word in negative
     ]
 
@@ -204,14 +203,13 @@ def most_similar(model, positive=None, negative=None,
 
     if not mean:
         raise ValueError("Cannot compute similarity with no input.")
-    mean = gensim.matutils.unitvec(np.array(mean)
-                                   .mean(axis=0)).astype(float)
+    mean = gensim.matutils.unitvec(np.array(mean).mean(axis=0)).astype(float)
 
     if indexer is not None:
         return indexer.most_similar(mean, topn)
 
-    limited = (model.vectors_norm if restrict_vocab is None
-               else model.vectors_norm[:restrict_vocab])
+    limited = (model.vectors_norm if restrict_vocab is None else
+               model.vectors_norm[:restrict_vocab])
     dists = limited @ mean
 
     if topn is None:
@@ -223,8 +221,7 @@ def most_similar(model, positive=None, negative=None,
 
     # if not unrestricted, then ignore (don't return)
     # words from the input
-    result = [(model.index2word[sim], float(dists[sim]))
-              for sim in best
+    result = [(model.index2word[sim], float(dists[sim])) for sim in best
               if unrestricted or sim not in all_words]
 
     return result[:topn]
@@ -245,8 +242,8 @@ def get_seed_vector(seed, bias_word_embedding):
         else:
             positive_end, negative_end = seed
 
-        seed_vector = normalize(bias_word_embedding.model[positive_end]
-                                - bias_word_embedding.model[negative_end])
+        seed_vector = normalize(bias_word_embedding.model[positive_end] -
+                                bias_word_embedding.model[negative_end])
 
     return seed_vector, positive_end, negative_end
 
@@ -256,11 +253,11 @@ def plot_clustering_as_classification(X, y_true, random_state=1, ax=None):
     if ax is None:
         _, ax = plt.subplots(figsize=(10, 5))
 
-    y_cluster = (KMeans(n_clusters=2, random_state=random_state)
-                 .fit_predict(X))
+    y_cluster = (KMeans(n_clusters=2,
+                        random_state=random_state).fit_predict(X))
 
-    embedded_vectors = (TSNE(n_components=2, random_state=random_state)
-                        .fit_transform(X))
+    embedded_vectors = (TSNE(n_components=2,
+                             random_state=random_state).fit_transform(X))
 
     for y_value in np.unique(y_cluster):
         mask = (y_cluster == y_value)
